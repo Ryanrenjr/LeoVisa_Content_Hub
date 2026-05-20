@@ -63,7 +63,18 @@ export type TopicDetailData = {
   updatedAt: string
   owner: { id: string; name: string }
   tags: { id: string; name: string }[]
-  assets: { id: string; type: string; status: string }[]
+  assets: {
+    id: string
+    topicId: string
+    type: string
+    status: string
+    textFilePath: string | null
+    coverImagePath: string | null
+    videoFilePath: string | null
+    scriptFilePath: string | null
+    originalNames: string | null
+    fileSizes: string | null
+  }[]
 }
 
 interface TopicInfoCardProps {

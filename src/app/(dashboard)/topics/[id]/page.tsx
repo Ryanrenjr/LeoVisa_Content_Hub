@@ -19,6 +19,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       include: {
         tags: true,
         owner: { select: { id: true, name: true } },
+        // NOTE: after dev server restart (prisma generate), originalNames/fileSizes will be present
         assets: { orderBy: { type: 'asc' } },
       },
     }),
@@ -27,11 +28,16 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   if (!topic) notFound()
 
-  // Serialize Date objects
+  // Serialize Date objects; cast assets to full type (new fields are null until client regenerated)
   const serialized = {
     ...topic,
     createdAt: topic.createdAt.toISOString(),
     updatedAt: topic.updatedAt.toISOString(),
+    assets: topic.assets.map((a) => ({
+      ...a,
+      originalNames: (a as Record<string, unknown>).originalNames as string | null ?? null,
+      fileSizes:     (a as Record<string, unknown>).fileSizes     as string | null ?? null,
+    })),
   }
 
   return (

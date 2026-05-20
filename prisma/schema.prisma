@@ -73,6 +73,8 @@ model Asset {
   coverImagePath String?
   videoFilePath  String?
   scriptFilePath String?
+  originalNames  String?  // JSON: { textFile, coverFile, videoFile, scriptFile }
+  fileSizes      String?  // JSON: { textFile, coverFile, videoFile, scriptFile } (bytes)
   status         String   @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | COMPLETED
   source         String   @default("MANUAL_UPLOAD") // MANUAL_UPLOAD | AI_GENERATED
   createdAt      DateTime @default(now())

@@ -3,7 +3,7 @@
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { ChevronLeft, Loader2, FileText, Video, ArrowRight, Trash2 } from 'lucide-react'
+import { ChevronLeft, Loader2, ArrowRight, Trash2 } from 'lucide-react'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,12 +15,12 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog'
-import { AppleCard } from '@/components/apple/apple-card'
-import { AppleBadge, type BadgeVariant } from '@/components/apple/apple-badge'
 import { SectionTitle } from '@/components/apple/section-title'
 import { TopicInfoCard, type TopicDetailData } from '@/components/topic-info-card'
+import { AssetCardText } from '@/components/asset-card-text'
+import { AssetCardVideo } from '@/components/asset-card-video'
 import { deleteTopic, createTopic } from '@/app/(dashboard)/topics/actions'
-import type { TopicStatus, AssetType, AssetStatus } from '@/types'
+import type { TopicStatus } from '@/types'
 
 // ─── Animation variants ────────────────────────────────────────────────────────
 
@@ -43,58 +43,6 @@ const gradientText: React.CSSProperties = {
   backgroundClip: 'text',
   WebkitTextFillColor: 'transparent',
   color: 'transparent',
-}
-
-// ─── Asset placeholder card ────────────────────────────────────────────────────
-
-const assetTypeConfig: Record<AssetType, { label: string; icon: React.ReactNode; variant: BadgeVariant }> = {
-  WECHAT_ARTICLE: { label: '公众号图文', icon: <FileText size={36} />, variant: 'glass-green' },
-  XHS_POST:       { label: '小红书图文', icon: <FileText size={36} />, variant: 'glass-red' },
-  VIDEO:          { label: '视频',       icon: <Video size={36} />,    variant: 'glass-purple' },
-}
-
-const assetStatusConfig: Record<AssetStatus, { label: string; variant: BadgeVariant }> = {
-  NOT_STARTED: { label: '未开始', variant: 'glass-default' },
-  IN_PROGRESS: { label: '制作中', variant: 'glass-blue' },
-  COMPLETED:   { label: '已完成', variant: 'glass-green' },
-}
-
-function AssetPlaceholderCard({ asset }: { asset: TopicDetailData['assets'][number] }) {
-  const type = assetTypeConfig[asset.type as AssetType] ?? assetTypeConfig.WECHAT_ARTICLE
-  const status = assetStatusConfig[asset.status as AssetStatus] ?? assetStatusConfig.NOT_STARTED
-
-  return (
-    <AppleCard variant="glass" hoverable style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
-      {/* Type badge */}
-      <div style={{ marginBottom: '24px' }}>
-        <AppleBadge variant={type.variant}>{type.label}</AppleBadge>
-      </div>
-
-      {/* Placeholder body */}
-      <div
-        style={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '24px 0',
-          gap: '12px',
-          color: 'rgba(0,0,0,0.15)',
-        }}
-      >
-        {type.icon}
-        <p style={{ fontSize: '13px', color: '#86868B', letterSpacing: '-0.01em', textAlign: 'center' }}>
-          下一步实现上传功能
-        </p>
-      </div>
-
-      {/* Status badge */}
-      <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid rgba(0,0,0,0.06)' }}>
-        <AppleBadge variant={status.variant}>{status.label}</AppleBadge>
-      </div>
-    </AppleCard>
-  )
 }
 
 // ─── Props ─────────────────────────────────────────────────────────────────────
@@ -316,37 +264,27 @@ export function TopicDetail({ topic, allTags, mode, ownerId }: TopicDetailProps)
       </motion.div>
 
       {/* ── Assets section ────────────────────────────────────────────────── */}
-      <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
-        <SectionTitle title="内容资产" subtitle="公众号图文 · 小红书图文 · 视频" />
-        {topic && topic.assets.length > 0 ? (
+      {topic && !isCreate && (
+        <motion.div custom={3} variants={fadeUp} initial="hidden" animate="visible">
+          <SectionTitle title="内容资产" subtitle="公众号图文 · 小红书图文 · 视频" />
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
               gap: '20px',
+              alignItems: 'start',
             }}
           >
-            {topic.assets.map((asset) => (
-              <AssetPlaceholderCard key={asset.id} asset={asset} />
-            ))}
+            {topic.assets.map((asset) =>
+              asset.type === 'VIDEO' ? (
+                <AssetCardVideo key={asset.id} asset={asset} />
+              ) : (
+                <AssetCardText key={asset.id} asset={asset} />
+              ),
+            )}
           </div>
-        ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: '20px',
-            }}
-          >
-            {(['WECHAT_ARTICLE', 'XHS_POST', 'VIDEO'] as AssetType[]).map((type) => (
-              <AssetPlaceholderCard
-                key={type}
-                asset={{ id: type, type, status: 'NOT_STARTED' }}
-              />
-            ))}
-          </div>
-        )}
-      </motion.div>
+        </motion.div>
+      )}
 
     </div>
   )

@@ -3,7 +3,19 @@
     "allow": [
       "PowerShell(Get-ChildItem \"C:\\\\LeoVisa\\\\08_开发系统\\\\LeoVisa_Content_Hub\\\\src\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
       "Bash(git add *)",
-      "Bash(git commit *)"
+      "Bash(git commit *)",
+      "Bash(npm run *)",
+      "Bash(npx tsc *)",
+      "Bash(curl *)",
+      "Bash(Select-String -Pattern \"error|Error|exception\")",
+      "Bash(npx shadcn *)",
+      "Bash(npx prisma *)",
+      "Bash(2>&1)",
+      "Bash(node -e ' *)",
+      "Bash(npm install *)",
+      "Bash(node -e \"const fs=require\\('fs'\\); const p='src/app/\\(dashboard\\)/topics/[id]/page.tsx'; const c=fs.readFileSync\\(p,'utf8'\\); fs.writeFileSync\\(p,c,'utf8'\\); console.log\\('touched'\\);\")",
+      "Bash(Remove-Item -Recurse -Force .next\\\\dev\\\\server\\\\chunks)",
+      "PowerShell(git add *)"
     ]
   }
 }
