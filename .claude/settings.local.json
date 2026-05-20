@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"C:\\\\LeoVisa\\\\08_开发系统\\\\LeoVisa_Content_Hub\\\\src\" -Recurse | Where-Object { !$_.PSIsContainer } | Select-Object -ExpandProperty FullName)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
