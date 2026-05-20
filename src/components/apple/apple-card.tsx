@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 interface AppleCardProps {
   children: React.ReactNode
   className?: string
+  style?: React.CSSProperties
   hoverable?: boolean
   onClick?: () => void
   bg?: 'white' | 'tertiary'
@@ -29,6 +30,7 @@ const GLASS_SHADOW_HOVER = [
 export function AppleCard({
   children,
   className,
+  style: styleProp,
   hoverable = false,
   onClick,
   bg = 'tertiary',
@@ -78,7 +80,7 @@ export function AppleCard({
         hoverable && 'cursor-pointer',
         className,
       )}
-      style={cardStyle}
+      style={{ ...cardStyle, ...styleProp }}
     >
       {/* Spotlight — background references CSS vars set via DOM, no extra renders */}
       <div
