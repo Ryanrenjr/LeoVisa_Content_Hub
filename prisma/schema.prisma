@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// SQLite does not support native enums.
+// All enum-like fields are stored as String; TypeScript enforces valid values.
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("EDITOR") // ADMIN | EDITOR | PUBLISHER
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  ownedTopics   Topic[]       @relation("TopicOwner")
+  assignedTasks PublishTask[] @relation("TaskAssignee")
+}
+
+model Account {
+  id               String   @id @default(cuid())
+  name             String
+  platform         String   // VIDEO_CHANNEL | XIAOHONGSHU | WECHAT_OFFICIAL
+  positioning      String
+  coreQuestion     String
+  contentType      String
+  duration         String
+  frequency        String
+  style            String
+  punchlineIndex   String
+  conversionFunnel String
+  displayOrder     Int
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  publishTasks PublishTask[]
+}
+
+model Topic {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  title       String
+  description String?
+  status      String   @default("DRAFT") // DRAFT | IN_PRODUCTION | READY_TO_PUBLISH | PUBLISHED | ARCHIVED
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner  User    @relation("TopicOwner", fields: [ownerId], references: [id])
+  assets Asset[]
+  tags   Tag[]   @relation("TopicTags")
+}
+
+model Tag {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  topics Topic[] @relation("TopicTags")
+}
+
+model Asset {
+  id             String   @id @default(cuid())
+  topicId        String
+  type           String   // WECHAT_ARTICLE | XHS_POST | VIDEO
+  textFilePath   String?
+  coverImagePath String?
+  videoFilePath  String?
+  scriptFilePath String?
+  status         String   @default("NOT_STARTED") // NOT_STARTED | IN_PROGRESS | COMPLETED
+  source         String   @default("MANUAL_UPLOAD") // MANUAL_UPLOAD | AI_GENERATED
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  topic        Topic         @relation(fields: [topicId], references: [id])
+  publishTasks PublishTask[]
+}
+
+model PublishTask {
+  id                      String    @id @default(cuid())
+  assetId                 String
+  accountId               String
+  scheduledAt             DateTime?
+  urgency                 String    @default("NORMAL") // URGENT | NORMAL
+  status                  String    @default("PENDING") // PENDING | SCHEDULED | PUBLISHED | CANCELLED
+  assignedToId            String
+  publishedUrl            String?
+  publishedScreenshotPath String?
+  publishedAt             DateTime?
+  notes                   String?
+  metricsId               String?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+
+  asset      Asset   @relation(fields: [assetId], references: [id])
+  account    Account @relation(fields: [accountId], references: [id])
+  assignedTo User    @relation("TaskAssignee", fields: [assignedToId], references: [id])
+}

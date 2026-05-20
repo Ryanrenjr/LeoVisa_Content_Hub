@@ -1,64 +1,91 @@
-// Global type definitions for LeoVisa Content Hub
+// ─── Prisma model types ───────────────────────────────────────────────────────
+export type {
+  User,
+  Account,
+  Topic,
+  Tag,
+  Asset,
+  PublishTask,
+} from '@prisma/client'
 
-export type Platform =
-  | 'wechat_video_main'      // 李尔王移民说
-  | 'wechat_video_policy'    // 李尔王说移民
-  | 'wechat_video_story'     // 李尔王谈移民
-  | 'wechat_video_qa'        // 李尔王聊移民
-  | 'xiaohongshu'            // 李尔王英欧移民中介服务
-  | 'mp_uk'                  // 李尔王英国移民留学观察
-  | 'mp_europe'              // 李尔王欧洲移民家园
+// ─── Enum constants (SQLite stores as String) ─────────────────────────────────
 
-export type ContentFormat =
-  | 'mp_article'             // 公众号图文
-  | 'xiaohongshu_post'       // 小红书图文
-  | 'digital_human_video'    // 数字人视频
+export const UserRole = {
+  ADMIN: 'ADMIN',
+  EDITOR: 'EDITOR',
+  PUBLISHER: 'PUBLISHER',
+} as const
+export type UserRole = (typeof UserRole)[keyof typeof UserRole]
 
-export type ContentStatus =
-  | 'draft'
-  | 'review'
-  | 'approved'
-  | 'published'
+export const Platform = {
+  VIDEO_CHANNEL: 'VIDEO_CHANNEL',
+  XIAOHONGSHU: 'XIAOHONGSHU',
+  WECHAT_OFFICIAL: 'WECHAT_OFFICIAL',
+} as const
+export type Platform = (typeof Platform)[keyof typeof Platform]
 
-export interface Account {
-  id: string
-  name: string
-  platform: Platform
-  description: string
-  tone: string
-  targetAudience: string
-  createdAt: Date
-  updatedAt: Date
+export const TopicStatus = {
+  DRAFT: 'DRAFT',
+  IN_PRODUCTION: 'IN_PRODUCTION',
+  READY_TO_PUBLISH: 'READY_TO_PUBLISH',
+  PUBLISHED: 'PUBLISHED',
+  ARCHIVED: 'ARCHIVED',
+} as const
+export type TopicStatus = (typeof TopicStatus)[keyof typeof TopicStatus]
+
+export const AssetType = {
+  WECHAT_ARTICLE: 'WECHAT_ARTICLE',
+  XHS_POST: 'XHS_POST',
+  VIDEO: 'VIDEO',
+} as const
+export type AssetType = (typeof AssetType)[keyof typeof AssetType]
+
+export const AssetStatus = {
+  NOT_STARTED: 'NOT_STARTED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+} as const
+export type AssetStatus = (typeof AssetStatus)[keyof typeof AssetStatus]
+
+export const AssetSource = {
+  MANUAL_UPLOAD: 'MANUAL_UPLOAD',
+  AI_GENERATED: 'AI_GENERATED',
+} as const
+export type AssetSource = (typeof AssetSource)[keyof typeof AssetSource]
+
+export const TaskUrgency = {
+  URGENT: 'URGENT',
+  NORMAL: 'NORMAL',
+} as const
+export type TaskUrgency = (typeof TaskUrgency)[keyof typeof TaskUrgency]
+
+export const TaskStatus = {
+  PENDING: 'PENDING',
+  SCHEDULED: 'SCHEDULED',
+  PUBLISHED: 'PUBLISHED',
+  CANCELLED: 'CANCELLED',
+} as const
+export type TaskStatus = (typeof TaskStatus)[keyof typeof TaskStatus]
+
+// ─── Composed / helper types ──────────────────────────────────────────────────
+
+import type { Topic, Asset, Account, User, PublishTask } from '@prisma/client'
+
+export type TopicWithAssets = Topic & {
+  assets: Asset[]
+  owner: Pick<User, 'id' | 'name'>
+  tags: { id: string; name: string }[]
 }
 
-export interface Topic {
-  id: string
-  title: string
-  description?: string
-  createdBy: string
-  status: ContentStatus
-  createdAt: Date
-  updatedAt: Date
+export type AssetWithTasks = Asset & {
+  publishTasks: (PublishTask & {
+    account: Account
+    assignedTo: Pick<User, 'id' | 'name'>
+  })[]
 }
 
-export interface ContentPiece {
-  id: string
-  topicId: string
-  format: ContentFormat
-  title: string
-  body?: string
-  attachments?: string[]
-  status: ContentStatus
-  createdAt: Date
-  updatedAt: Date
-}
-
-export interface DistributionRecord {
-  id: string
-  contentId: string
-  accountId: string
-  publishedAt?: Date
-  publishedBy: string
-  note?: string
-  createdAt: Date
+export type PublishTaskWithRelations = PublishTask & {
+  asset: Asset & { topic: Pick<Topic, 'id' | 'code' | 'title'> }
+  account: Account
+  assignedTo: Pick<User, 'id' | 'name'>
 }
