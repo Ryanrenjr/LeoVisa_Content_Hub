@@ -1,4 +1,4 @@
-import { AppleBadge } from '@/components/apple/apple-badge'
+import { AppleBadge, type BadgeVariant } from '@/components/apple/apple-badge'
 import { AppleCard } from '@/components/apple/apple-card'
 
 export type AccountData = {
@@ -18,20 +18,20 @@ export type AccountData = {
 
 const platformBadgeMap: Record<
   string,
-  { label: string; variant: 'purple' | 'red' | 'green' }
+  { label: string; variant: BadgeVariant }
 > = {
-  VIDEO_CHANNEL:   { label: '视频号', variant: 'purple' },
-  XIAOHONGSHU:     { label: '小红书', variant: 'red' },
-  WECHAT_OFFICIAL: { label: '公众号', variant: 'green' },
+  VIDEO_CHANNEL:   { label: '视频号', variant: 'glass-purple' },
+  XIAOHONGSHU:     { label: '小红书', variant: 'glass-red' },
+  WECHAT_OFFICIAL: { label: '公众号', variant: 'glass-green' },
 }
 
 const attributes: { key: keyof AccountData; label: string }[] = [
-  { key: 'coreQuestion',    label: '核心问题' },
-  { key: 'contentType',     label: '内容类型' },
-  { key: 'duration',        label: '时长' },
-  { key: 'frequency',       label: '发布频率' },
-  { key: 'style',           label: '风格' },
-  { key: 'punchlineIndex',  label: '金句指数' },
+  { key: 'coreQuestion',     label: '核心问题' },
+  { key: 'contentType',      label: '内容类型' },
+  { key: 'duration',         label: '时长' },
+  { key: 'frequency',        label: '发布频率' },
+  { key: 'style',            label: '风格' },
+  { key: 'punchlineIndex',   label: '金句指数' },
   { key: 'conversionFunnel', label: '转化定位' },
 ]
 
@@ -42,7 +42,7 @@ interface AccountCardProps {
 export function AccountCard({ account }: AccountCardProps) {
   const platformInfo = platformBadgeMap[account.platform] ?? {
     label: account.platform,
-    variant: 'default' as const,
+    variant: 'glass-default' as BadgeVariant,
   }
 
   const hasAttributes = attributes.some((a) => {
@@ -51,12 +51,12 @@ export function AccountCard({ account }: AccountCardProps) {
   })
 
   return (
-    <AppleCard hoverable className="h-full">
+    <AppleCard hoverable variant="glass" className="h-full">
       {/* Platform + positioning badges */}
       <div className="mb-4 flex flex-wrap gap-2">
         <AppleBadge variant={platformInfo.variant}>{platformInfo.label}</AppleBadge>
         {account.positioning && (
-          <AppleBadge variant="default">{account.positioning}</AppleBadge>
+          <AppleBadge variant="glass-default">{account.positioning}</AppleBadge>
         )}
       </div>
 
@@ -89,10 +89,12 @@ export function AccountCard({ account }: AccountCardProps) {
               <div key={key}>
                 <div
                   style={{
-                    fontSize: '13px',
+                    fontSize: '12px',
                     color: '#86868B',
                     marginBottom: '3px',
                     letterSpacing: '-0.01em',
+                    textTransform: 'uppercase',
+                    fontWeight: 500,
                   }}
                 >
                   {label}

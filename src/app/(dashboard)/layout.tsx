@@ -1,4 +1,5 @@
 import { AppleNavbar } from '@/components/apple/apple-navbar'
+import { AuroraBackground } from '@/components/apple/aurora-background'
 
 export default function DashboardLayout({
   children,
@@ -7,14 +8,9 @@ export default function DashboardLayout({
 }) {
   return (
     <>
+      <AuroraBackground />
       <AppleNavbar />
-      <main
-        style={{
-          paddingTop: '48px',
-          minHeight: '100vh',
-          backgroundColor: '#F5F5F7',
-        }}
-      >
+      <main style={{ paddingTop: '48px', minHeight: '100vh' }}>
         {children}
       </main>
     </>
