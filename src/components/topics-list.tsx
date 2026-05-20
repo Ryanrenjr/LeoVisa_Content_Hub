@@ -204,7 +204,10 @@ export function TopicsList({ topics, allTags }: TopicsListProps) {
                   style={{ width: '100%', cursor: 'pointer' }}
                   onClick={() => router.push(`/topics/${topic.id}`)}
                 >
-                  <TopicCard topic={topic} />
+                  <TopicCard
+                    topic={topic}
+                    onDistributeClick={() => router.push(`/topics/${topic.id}/distribute`)}
+                  />
                 </div>
               </motion.div>
             ))}

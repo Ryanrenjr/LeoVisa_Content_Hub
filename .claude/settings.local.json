@@ -15,7 +15,16 @@
       "Bash(npm install *)",
       "Bash(node -e \"const fs=require\\('fs'\\); const p='src/app/\\(dashboard\\)/topics/[id]/page.tsx'; const c=fs.readFileSync\\(p,'utf8'\\); fs.writeFileSync\\(p,c,'utf8'\\); console.log\\('touched'\\);\")",
       "Bash(Remove-Item -Recurse -Force .next\\\\dev\\\\server\\\\chunks)",
-      "PowerShell(git add *)"
+      "PowerShell(git add *)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('scripts',{}\\), indent=2\\)\\)\")",
+      "Bash(npx next *)",
+      "Bash(node -e 'const {PrismaClient}=require\\('\\\\''@prisma/client'\\\\''\\);const p=new PrismaClient\\(\\);p.topic.findFirst\\({orderBy:{code:'\\\\''asc'\\\\''}}\\).then\\(t=>{console.log\\(t.id,t.code,t.title,t.status\\);p.$disconnect\\(\\)}\\)')",
+      "Bash(node -e 'const {PrismaClient}=require\\('\\\\''@prisma/client'\\\\''\\);const p=new PrismaClient\\(\\);p.topic.findMany\\({orderBy:{code:'\\\\''asc'\\\\''},select:{id:true,code:true,title:true,status:true}}\\).then\\(ts=>{ts.forEach\\(t=>console.log\\(t.id,t.code,t.status,t.title\\)\\);p.$disconnect\\(\\)}\\)')",
+      "Bash(where chromium-cli *)",
+      "Bash(where chromium *)",
+      "Bash(where chrome *)",
+      "Bash(python3 -c ' *)",
+      "PowerShell(Stop-Process *)"
     ]
   }
 }

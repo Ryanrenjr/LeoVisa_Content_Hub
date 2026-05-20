@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Loader2, Circle, FileText, Video } from 'lucide-react'
+import { CheckCircle2, Loader2, Circle, FileText, Video, Send } from 'lucide-react'
 import { AppleCard } from '@/components/apple/apple-card'
 import { AppleBadge, type BadgeVariant } from '@/components/apple/apple-badge'
 import type { TopicStatus, AssetType, AssetStatus } from '@/types'
@@ -76,9 +76,12 @@ export type TopicCardData = {
 
 interface TopicCardProps {
   topic: TopicCardData
+  onDistributeClick?: () => void
 }
 
-export function TopicCard({ topic }: TopicCardProps) {
+const DISTRIBUTE_ELIGIBLE = new Set(['IN_PRODUCTION', 'READY_TO_PUBLISH', 'PUBLISHED'])
+
+export function TopicCard({ topic, onDistributeClick }: TopicCardProps) {
   const topicStatus = topic.status as TopicStatus
   const statusInfo = statusConfig[topicStatus] ?? { label: topic.status, variant: 'glass-default' as BadgeVariant }
 
@@ -183,17 +186,43 @@ export function TopicCard({ topic }: TopicCardProps) {
             </AppleBadge>
           )}
         </div>
-        <span
-          style={{
-            fontSize: '11px',
-            color: '#86868B',
-            letterSpacing: '-0.01em',
-            whiteSpace: 'nowrap',
-            flexShrink: 0,
-          }}
-        >
-          {dateStr}
-        </span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+          <span style={{ fontSize: '11px', color: '#86868B', letterSpacing: '-0.01em', whiteSpace: 'nowrap' }}>
+            {dateStr}
+          </span>
+          {DISTRIBUTE_ELIGIBLE.has(topic.status) && onDistributeClick && (
+            <button
+              title="分发设置"
+              onClick={(e) => { e.stopPropagation(); onDistributeClick() }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '26px',
+                height: '26px',
+                borderRadius: '8px',
+                border: '1px solid rgba(0,113,227,0.2)',
+                background: 'rgba(0,113,227,0.06)',
+                color: '#0071E3',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                flexShrink: 0,
+              }}
+              onMouseEnter={(e) => {
+                const b = e.currentTarget as HTMLButtonElement
+                b.style.background = 'rgba(0,113,227,0.14)'
+                b.style.borderColor = 'rgba(0,113,227,0.4)'
+              }}
+              onMouseLeave={(e) => {
+                const b = e.currentTarget as HTMLButtonElement
+                b.style.background = 'rgba(0,113,227,0.06)'
+                b.style.borderColor = 'rgba(0,113,227,0.2)'
+              }}
+            >
+              <Send size={12} />
+            </button>
+          )}
+        </div>
       </div>
     </AppleCard>
   )

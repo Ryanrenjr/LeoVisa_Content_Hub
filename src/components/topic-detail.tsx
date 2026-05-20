@@ -157,6 +157,7 @@ export function TopicDetail({ topic, allTags, mode, ownerId }: TopicDetailProps)
           {/* Go to distribute */}
           {canGoToDistribute && (
             <button
+              onClick={() => router.push(`/topics/${topic!.id}/distribute`)}
               style={{
                 display: 'flex',
                 alignItems: 'center',
@@ -165,14 +166,17 @@ export function TopicDetail({ topic, allTags, mode, ownerId }: TopicDetailProps)
                 borderRadius: '999px',
                 fontSize: '14px',
                 fontWeight: 500,
-                border: '1px solid rgba(0,0,0,0.12)',
-                background: 'rgba(255,255,255,0.6)',
+                border: '1px solid rgba(0,113,227,0.3)',
+                background: 'linear-gradient(135deg, rgba(0,113,227,0.08), rgba(110,63,251,0.06))',
                 backdropFilter: 'blur(8px)',
                 WebkitBackdropFilter: 'blur(8px)',
-                color: '#1D1D1F',
+                color: '#0071E3',
                 cursor: 'pointer',
                 letterSpacing: '-0.01em',
+                transition: 'all 0.2s',
               }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'rgba(0,113,227,0.14)' }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = 'linear-gradient(135deg, rgba(0,113,227,0.08), rgba(110,63,251,0.06))' }}
             >
               前往分发设置
               <ArrowRight size={13} />
