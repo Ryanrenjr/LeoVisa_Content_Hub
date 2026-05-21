@@ -7,13 +7,13 @@ async function main() {
   console.log('🌱 Seeding database...')
 
   // ── Users ──────────────────────────────────────────────────────────────────
-  const hashedPassword = await bcrypt.hash('leovisa2026', 12)
+  const hashedPassword = await bcrypt.hash('123456789aB', 12)
 
   const ryan = await prisma.user.upsert({
-    where: { email: 'ryan@leovisa.com' },
-    update: {},
+    where: { email: 'rjxxx@leovisas.com' },
+    update: { password: hashedPassword },
     create: {
-      email: 'ryan@leovisa.com',
+      email: 'rjxxx@leovisas.com',
       password: hashedPassword,
       name: 'Ryan',
       role: 'ADMIN',
@@ -21,23 +21,23 @@ async function main() {
   })
 
   const winnie = await prisma.user.upsert({
-    where: { email: 'winnie@leovisa.com' },
-    update: {},
+    where: { email: 'User@leovisas.com' },
+    update: { password: hashedPassword },
     create: {
-      email: 'winnie@leovisa.com',
+      email: 'User@leovisas.com',
       password: hashedPassword,
-      name: 'Winnie',
+      name: 'User',
       role: 'PUBLISHER',
     },
   })
 
   await prisma.user.upsert({
-    where: { email: 'boss@leovisa.com' },
-    update: {},
+    where: { email: 'Admin@leovisas.com' },
+    update: { password: hashedPassword },
     create: {
-      email: 'boss@leovisa.com',
+      email: 'Admin@leovisas.com',
       password: hashedPassword,
-      name: 'Boss',
+      name: 'Admin',
       role: 'ADMIN',
     },
   })

@@ -7,10 +7,15 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { NavbarUrgentBadge } from '@/components/navbar-urgent-badge'
+import { handleSignOut } from '@/lib/actions/auth'
+
+// ─── Config ───────────────────────────────────────────────────────────────────
 
 const navLinks = [
   { label: '仪表盘', href: '/' },
@@ -19,8 +24,40 @@ const navLinks = [
   { label: '排期管理', href: '/schedule', showUrgentBadge: true },
 ]
 
-export function AppleNavbar() {
+const ROLE_LABEL: Record<string, string> = {
+  ADMIN:     '管理员',
+  PUBLISHER: '分发执行',
+  EDITOR:    '内容编辑',
+}
+
+const ROLE_COLOR: Record<string, { bg: string; color: string }> = {
+  ADMIN:     { bg: 'rgba(0,113,227,0.1)',   color: '#0071E3' },
+  PUBLISHER: { bg: 'rgba(110,63,251,0.1)',  color: '#6E3FFB' },
+  EDITOR:    { bg: 'rgba(52,199,89,0.1)',   color: '#34C759' },
+}
+
+function avatarColor(name: string): string {
+  const colors = ['#0071E3', '#6E3FFB', '#FF9500', '#34C759', '#FF3B30']
+  return colors[name.charCodeAt(0) % colors.length]
+}
+
+// ─── Props ────────────────────────────────────────────────────────────────────
+
+interface NavbarUser {
+  name?: string
+  email?: string
+  role?: string
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function AppleNavbar({ user }: { user?: NavbarUser }) {
   const pathname = usePathname()
+  const initial = user?.name?.[0]?.toUpperCase() ?? '?'
+  const bgColor = user?.name ? avatarColor(user.name) : '#86868B'
+  const role = user?.role ?? 'EDITOR'
+  const roleLabel = ROLE_LABEL[role] ?? role
+  const roleColors = ROLE_COLOR[role] ?? ROLE_COLOR.EDITOR
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -71,22 +108,75 @@ export function AppleNavbar() {
         ))}
       </nav>
 
-      {/* User avatar */}
+      {/* User avatar + dropdown */}
       <DropdownMenu>
         <DropdownMenuTrigger
           className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-full border-0 text-white outline-none focus:outline-none focus-visible:outline-none"
           style={{
-            backgroundColor: '#0071E3',
+            backgroundColor: bgColor,
             fontSize: '11px',
             fontWeight: 600,
           }}
         >
-          R
+          {initial}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem className="cursor-pointer text-[#FF3B30] focus:text-[#FF3B30]">
-            退出登录
+
+        <DropdownMenuContent align="end" style={{ minWidth: '200px' }}>
+          {/* User info */}
+          <DropdownMenuLabel className="font-normal">
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '4px 0' }}>
+              <div
+                style={{
+                  width: '36px', height: '36px', borderRadius: '50%',
+                  background: bgColor, flexShrink: 0,
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  color: '#fff', fontSize: '14px', fontWeight: 700,
+                }}
+              >
+                {initial}
+              </div>
+              <div style={{ minWidth: 0 }}>
+                <div style={{ fontSize: '13px', fontWeight: 600, color: '#1D1D1F', letterSpacing: '-0.01em' }}>
+                  {user?.name ?? '用户'}
+                </div>
+                <div style={{ fontSize: '11px', color: '#86868B', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {user?.email ?? ''}
+                </div>
+                <span style={{
+                  display: 'inline-block', marginTop: '3px',
+                  background: roleColors.bg, color: roleColors.color,
+                  fontSize: '10px', fontWeight: 600, letterSpacing: '-0.01em',
+                  borderRadius: '980px', padding: '1px 7px',
+                }}>
+                  {roleLabel}
+                </span>
+              </div>
+            </div>
+          </DropdownMenuLabel>
+
+          <DropdownMenuSeparator />
+
+          {/* Settings (disabled) */}
+          <DropdownMenuItem
+            disabled
+            title="v1.5 推出"
+            className="cursor-not-allowed text-[#86868B]"
+          >
+            个人设置
           </DropdownMenuItem>
+
+          <DropdownMenuSeparator />
+
+          {/* Sign out */}
+          <form action={handleSignOut} style={{ margin: 0 }}>
+            <button
+              type="submit"
+              className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-accent"
+              style={{ color: '#FF3B30', border: 'none', background: 'transparent' }}
+            >
+              退出登录
+            </button>
+          </form>
         </DropdownMenuContent>
       </DropdownMenu>
     </header>
