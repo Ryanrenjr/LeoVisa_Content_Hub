@@ -24,7 +24,16 @@
       "Bash(where chromium *)",
       "Bash(where chrome *)",
       "Bash(python3 -c ' *)",
-      "PowerShell(Stop-Process *)"
+      "PowerShell(Stop-Process *)",
+      "Bash(Get-ChildItem -Path \"c:\\\\LeoVisa\\\\08_开发系统\\\\LeoVisa_Content_Hub\" -Recurse -Force)",
+      "Bash(Select-Object -First 50)",
+      "Bash(Format-Table -AutoSize)",
+      "Bash(ls /mnt/c/LeoVisa/08_开发系统/LeoVisa_Content_Hub/.claude/skills/ 2>/dev/null || echo \"No skills directory\")",
+      "Read(//mnt/c/LeoVisa/08_开发系统/LeoVisa_Content_Hub/.claude/**)",
+      "Bash(npx playwright *)",
+      "Read(//mnt/c/LeoVisa/08_开发系统/**)",
+      "Bash(ls /mnt/c/LeoVisa/ 2>/dev/null || echo \"path not available via /mnt/c\")",
+      "Read(//mnt/c/**)"
     ]
   }
 }

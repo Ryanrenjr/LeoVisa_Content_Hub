@@ -1,3 +1,88 @@
+// ─── Date helpers ─────────────────────────────────────────────────────────────
+
+export function isToday(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date
+  return d.toDateString() === new Date().toDateString()
+}
+
+export function isTomorrow(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const t = new Date()
+  t.setDate(t.getDate() + 1)
+  return d.toDateString() === t.toDateString()
+}
+
+export function isThisWeek(date: Date | string): boolean {
+  const d = typeof date === 'string' ? new Date(date) : date
+  const now = new Date()
+  const dow = now.getDay()
+  const startOfWeek = new Date(now)
+  startOfWeek.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  startOfWeek.setHours(0, 0, 0, 0)
+  const endOfWeek = new Date(startOfWeek)
+  endOfWeek.setDate(startOfWeek.getDate() + 6)
+  endOfWeek.setHours(23, 59, 59, 999)
+  return d >= startOfWeek && d <= endOfWeek
+}
+
+// ─── Task grouping ─────────────────────────────────────────────────────────────
+
+type GroupableTask = {
+  scheduledAt: string | null
+  urgency: string
+  status: string
+}
+
+export type TaskGroups<T extends GroupableTask> = {
+  urgent: T[]
+  today: T[]
+  tomorrow: T[]
+  thisWeekRest: T[]
+  later: T[]
+  immediate: T[]
+  completed: T[]
+}
+
+export function groupTasksByTime<T extends GroupableTask>(tasks: T[]): TaskGroups<T> {
+  const result: TaskGroups<T> = {
+    urgent: [], today: [], tomorrow: [], thisWeekRest: [],
+    later: [], immediate: [], completed: [],
+  }
+
+  const now = new Date()
+  const todayStr = now.toDateString()
+  const tomorrow = new Date(now)
+  tomorrow.setDate(now.getDate() + 1)
+  const tomorrowStr = tomorrow.toDateString()
+
+  const dow = now.getDay()
+  const startOfWeek = new Date(now)
+  startOfWeek.setDate(now.getDate() - (dow === 0 ? 6 : dow - 1))
+  startOfWeek.setHours(0, 0, 0, 0)
+  const endOfWeek = new Date(startOfWeek)
+  endOfWeek.setDate(startOfWeek.getDate() + 6)
+  endOfWeek.setHours(23, 59, 59, 999)
+
+  for (const task of tasks) {
+    if (task.status === 'PUBLISHED') { result.completed.push(task); continue }
+    if (task.status === 'CANCELLED') continue
+    if (task.urgency === 'URGENT') { result.urgent.push(task); continue }
+    if (!task.scheduledAt) { result.immediate.push(task); continue }
+
+    const d = new Date(task.scheduledAt)
+    const dStr = d.toDateString()
+
+    if (dStr === todayStr) result.today.push(task)
+    else if (dStr === tomorrowStr) result.tomorrow.push(task)
+    else if (d >= startOfWeek && d <= endOfWeek) result.thisWeekRest.push(task)
+    else result.later.push(task)
+  }
+
+  return result
+}
+
+// ─── Formatting ───────────────────────────────────────────────────────────────
+
 export function formatScheduledTime(date: Date | string): { text: string; expired: boolean } {
   const d = typeof date === 'string' ? new Date(date) : date
   const now = new Date()

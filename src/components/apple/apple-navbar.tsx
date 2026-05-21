@@ -10,12 +10,13 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
+import { NavbarUrgentBadge } from '@/components/navbar-urgent-badge'
 
 const navLinks = [
   { label: '仪表盘', href: '/' },
   { label: '账号矩阵', href: '/accounts' },
   { label: '选题工作台', href: '/topics' },
-  { label: '排期管理', href: '/schedule' },
+  { label: '排期管理', href: '/schedule', showUrgentBadge: true },
 ]
 
 export function AppleNavbar() {
@@ -58,13 +59,14 @@ export function AppleNavbar() {
             key={link.href}
             href={link.href}
             className={cn(
-              'rounded-lg px-3 py-1.5 text-sm tracking-[-0.01em] transition-colors duration-200',
+              'flex items-center rounded-lg px-3 py-1.5 text-sm tracking-[-0.01em] transition-colors duration-200',
               isActive(link.href)
                 ? 'font-medium text-[#0071E3]'
                 : 'text-[#1D1D1F] hover:text-[#0071E3]',
             )}
           >
             {link.label}
+            {link.showUrgentBadge && <NavbarUrgentBadge />}
           </Link>
         ))}
       </nav>
