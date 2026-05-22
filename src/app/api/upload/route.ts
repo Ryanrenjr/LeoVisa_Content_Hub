@@ -5,6 +5,7 @@ import { db } from '@/lib/db'
 import { storage, buildRelPath, SLOT_CONFIG, type FileSlot } from '@/lib/storage'
 import { inferAssetStatus } from '@/lib/asset-status'
 
+export const runtime = 'nodejs'
 export const maxDuration = 300 // allow 5 min for large video uploads
 
 export async function POST(req: NextRequest) {
