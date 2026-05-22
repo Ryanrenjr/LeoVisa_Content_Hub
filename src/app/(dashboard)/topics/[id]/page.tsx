@@ -2,6 +2,13 @@ import { notFound } from 'next/navigation'
 import { db } from '@/lib/db'
 import { getAllTags } from '@/app/(dashboard)/topics/actions'
 import { TopicDetail } from '@/components/topic-detail'
+import type { AssetRow } from '@/components/asset-account-picker'
+
+const PLATFORM_FOR_ASSET: Record<string, string> = {
+  WECHAT_ARTICLE: 'WECHAT_OFFICIAL',
+  XHS_POST:       'XIAOHONGSHU',
+  VIDEO:          'VIDEO_CHANNEL',
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -13,22 +20,52 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function TopicDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
 
-  const [topic, allTags] = await Promise.all([
+  const [topic, allTags, accounts] = await Promise.all([
     db.topic.findUnique({
       where: { id },
       include: {
         tags: true,
         owner: { select: { id: true, name: true } },
-        // NOTE: after dev server restart (prisma generate), originalNames/fileSizes will be present
-        assets: { orderBy: { type: 'asc' } },
+        assets: {
+          orderBy: { type: 'asc' },
+          include: {
+            publishTasks: {
+              where: { status: { not: 'CANCELLED' } },
+              select: { accountId: true, status: true },
+            },
+          },
+        },
       },
     }),
     getAllTags(),
+    db.account.findMany({
+      orderBy: { displayOrder: 'asc' },
+      select: { id: true, name: true, platform: true, positioning: true, displayOrder: true },
+    }),
   ])
 
   if (!topic) notFound()
 
-  // Serialize Date objects; cast assets to full type (new fields are null until client regenerated)
+  // Build AssetRow[] for the account picker
+  const assetRows: AssetRow[] = topic.assets.map((asset) => {
+    const platform = PLATFORM_FOR_ASSET[asset.type] ?? ''
+    const filtered = accounts.filter((a) => a.platform === platform)
+    // The account with the lowest displayOrder for VIDEO_CHANNEL is the 主号
+    const minOrder = Math.min(...filtered.map((a) => a.displayOrder))
+    return {
+      assetId: asset.id,
+      assetType: asset.type,
+      accounts: filtered.map((a) => ({
+        id: a.id,
+        name: a.name,
+        platform: a.platform,
+        positioning: a.positioning,
+        isMain: platform === 'VIDEO_CHANNEL' && a.displayOrder === minOrder,
+      })),
+      assignedIds: asset.publishTasks.map((t) => t.accountId),
+    }
+  })
+
   const serialized = {
     ...topic,
     createdAt: topic.createdAt.toISOString(),
@@ -46,6 +83,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       allTags={allTags}
       mode="view"
       ownerId={topic.ownerId}
+      assetRows={assetRows}
     />
   )
 }

@@ -3,13 +3,12 @@
 import { useState, useTransition, useRef, useCallback } from 'react'
 import { motion } from 'framer-motion'
 import {
-  Copy, ImageDown, Play, Edit3, Trash2, Loader2, ExternalLink, CheckCircle2,
+  Copy, ImageDown, Play, Edit3, Trash2, Loader2, CheckCircle2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import Link from 'next/link'
 import { AppleBadge, type BadgeVariant } from '@/components/apple/apple-badge'
-import { PublishConfirmDialog } from '@/components/publish-confirm-dialog'
-import { deleteScheduleTask, getAssetTextContent } from '@/app/(dashboard)/schedule/actions'
+import { deleteScheduleTask, getAssetTextContent, markTaskAsPublished } from '@/app/(dashboard)/schedule/actions'
 import { formatScheduledTime } from '@/lib/format-date'
 import type { ScheduleTask } from '@/app/(dashboard)/schedule/actions'
 
@@ -92,10 +91,10 @@ interface PublishTaskCardProps {
 export function PublishTaskCard({ task, index = 0 }: PublishTaskCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
   const [hovered, setHovered] = useState(false)
-  const [dialogOpen, setDialogOpen] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState(false)
   const [copying, setCopying] = useState(false)
   const [deleting, startDelete] = useTransition()
+  const [publishing, startPublish] = useTransition()
 
   const assetCfg = ASSET_TYPE_CONFIG[task.asset.type] ?? {
     label: task.asset.type, variant: 'glass-default' as BadgeVariant, color: '#6E6E73',
@@ -140,9 +139,18 @@ export function PublishTaskCard({ task, index = 0 }: PublishTaskCardProps) {
     })
   }
 
-  const publishedDate = task.publishedAt
-    ? new Date(task.publishedAt)
-    : null
+  const handleMarkPublished = () => {
+    startPublish(async () => {
+      try {
+        await markTaskAsPublished(task.id)
+        toast.success('已标记发布')
+      } catch (e) {
+        toast.error('标记失败：' + (e instanceof Error ? e.message : '未知错误'))
+      }
+    })
+  }
+
+  const publishedDate = task.publishedAt ? new Date(task.publishedAt) : null
 
   return (
     <>
@@ -240,7 +248,11 @@ export function PublishTaskCard({ task, index = 0 }: PublishTaskCardProps) {
               )
             )}
             {!task.scheduledAt && !isPublished && (
-              <span style={{ fontSize: '11px', color: '#86868B', letterSpacing: '-0.01em' }}>立即发布</span>
+              task.status === 'BACKLOG' ? (
+                <span style={{ fontSize: '11px', color: '#6E3FFB', letterSpacing: '-0.01em' }}>备稿待发</span>
+              ) : (
+                <span style={{ fontSize: '11px', color: '#86868B', letterSpacing: '-0.01em' }}>待发布</span>
+              )
             )}
           </div>
         </div>
@@ -380,57 +392,40 @@ export function PublishTaskCard({ task, index = 0 }: PublishTaskCardProps) {
           {/* Main action button */}
           <div>
             {isPublished ? (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                  <CheckCircle2 size={13} color="#34C759" />
-                  <span style={{ fontSize: '12px', color: '#34C759', fontWeight: 600, letterSpacing: '-0.01em' }}>
-                    {publishedDate
-                      ? `已于 ${publishedDate.getMonth() + 1} 月 ${publishedDate.getDate()} 日发布`
-                      : '已发布'}
-                  </span>
-                </div>
-                {task.publishedUrl && (
-                  <a
-                    href={task.publishedUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{
-                      display: 'inline-flex', alignItems: 'center', gap: '3px',
-                      fontSize: '11px', color: '#0071E3', fontWeight: 500,
-                      textDecoration: 'none', letterSpacing: '-0.01em',
-                    }}
-                  >
-                    <ExternalLink size={10} /> 查看链接
-                  </a>
-                )}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                <CheckCircle2 size={13} color="#34C759" />
+                <span style={{ fontSize: '12px', color: '#34C759', fontWeight: 600, letterSpacing: '-0.01em' }}>
+                  {publishedDate
+                    ? `已于 ${publishedDate.getMonth() + 1} 月 ${publishedDate.getDate()} 日发布`
+                    : '已发布'}
+                </span>
               </div>
             ) : (
               <button
-                onClick={() => setDialogOpen(true)}
+                onClick={handleMarkPublished}
+                disabled={publishing}
                 style={{
                   width: '100%', padding: '8px 12px',
-                  background: 'linear-gradient(135deg, #0071E3 0%, #0091FF 100%)',
-                  border: 'none', borderRadius: '10px', cursor: 'pointer',
+                  background: publishing
+                    ? 'rgba(0,113,227,0.4)'
+                    : 'linear-gradient(135deg, #0071E3 0%, #0091FF 100%)',
+                  border: 'none', borderRadius: '10px',
+                  cursor: publishing ? 'not-allowed' : 'pointer',
                   fontSize: '12px', fontWeight: 600, color: '#fff',
                   letterSpacing: '-0.01em',
                   boxShadow: '0 2px 8px rgba(0,113,227,0.3)',
                   transition: 'opacity 0.15s',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px',
                 }}
-                onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '0.88' }}
+                onMouseEnter={(e) => { if (!publishing) (e.currentTarget as HTMLButtonElement).style.opacity = '0.88' }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.opacity = '1' }}
               >
-                标记已发布
+                {publishing ? <><Loader2 size={11} className="animate-spin" /> 标记中…</> : '标记已发布'}
               </button>
             )}
           </div>
         </div>
       </motion.div>
-
-      <PublishConfirmDialog
-        task={task}
-        open={dialogOpen}
-        onClose={() => setDialogOpen(false)}
-      />
     </>
   )
 }

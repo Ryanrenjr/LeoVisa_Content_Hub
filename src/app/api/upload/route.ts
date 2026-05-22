@@ -1,10 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import path from 'path'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { storage, buildRelPath, SLOT_CONFIG, type FileSlot } from '@/lib/storage'
 import { inferAssetStatus } from '@/lib/asset-status'
 
+export const maxDuration = 300 // allow 5 min for large video uploads
+
 export async function POST(req: NextRequest) {
+  const session = await auth()
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   try {
     const formData = await req.formData()
     const topicId  = formData.get('topicId')  as string | null
@@ -87,11 +95,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, asset: updated, path: relPath })
   } catch (err) {
     console.error('[upload]', err)
-    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+    const msg = err instanceof Error ? err.message : String(err)
+    return NextResponse.json({ error: msg || 'Upload failed' }, { status: 500 })
   }
-}
-
-// Increase body size limit for large video uploads
-export const config = {
-  api: { bodyParser: false },
 }

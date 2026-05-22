@@ -17,6 +17,22 @@ const ALL_STATUSES: { value: TopicStatus | 'ALL'; label: string }[] = [
   { value: 'ARCHIVED',       label: '已归档' },
 ]
 
+// ─── Platform config ───────────────────────────────────────────────────────────
+
+const PLATFORM_COLOR: Record<string, string> = {
+  VIDEO_CHANNEL:   '#6E3FFB',
+  WECHAT_OFFICIAL: '#07C160',
+  XIAOHONGSHU:     '#FF2442',
+}
+
+const PLATFORM_LABEL: Record<string, string> = {
+  VIDEO_CHANNEL:   '视频号',
+  WECHAT_OFFICIAL: '公众号',
+  XIAOHONGSHU:     '小红书',
+}
+
+const PLATFORM_ORDER = ['VIDEO_CHANNEL', 'WECHAT_OFFICIAL', 'XIAOHONGSHU']
+
 // ─── Props ─────────────────────────────────────────────────────────────────────
 
 interface TopicsToolbarProps {
@@ -25,6 +41,9 @@ interface TopicsToolbarProps {
   selectedTags: string[]
   onTagsChange: (tags: string[]) => void
   allTags: { id: string; name: string }[]
+  allAccounts: { id: string; name: string; platform: string }[]
+  selectedAccount: string | null
+  onAccountChange: (id: string | null) => void
   search: string
   onSearchChange: (v: string) => void
   onCreateClick: () => void
@@ -36,6 +55,9 @@ export function TopicsToolbar({
   selectedTags,
   onTagsChange,
   allTags,
+  allAccounts,
+  selectedAccount,
+  onAccountChange,
   search,
   onSearchChange,
   onCreateClick,
@@ -50,6 +72,75 @@ export function TopicsToolbar({
   }
 
   return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+
+      {/* ── Account filter — grouped by platform ────────────────────────── */}
+      {allAccounts.length > 0 && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          {PLATFORM_ORDER.map((platform) => {
+            const group = allAccounts.filter((a) => a.platform === platform)
+            if (group.length === 0) return null
+            const color = PLATFORM_COLOR[platform] ?? '#86868B'
+            const label = PLATFORM_LABEL[platform] ?? platform
+            return (
+              <div key={platform} style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                {/* Platform label */}
+                <span
+                  style={{
+                    fontSize: '10px',
+                    fontWeight: 600,
+                    color,
+                    letterSpacing: '0.02em',
+                    background: `${color}12`,
+                    border: `1px solid ${color}28`,
+                    borderRadius: '5px',
+                    padding: '2px 7px',
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {label}
+                </span>
+
+                {/* Account chips */}
+                {group.map((acc) => {
+                  const active = selectedAccount === acc.id
+                  return (
+                    <button
+                      key={acc.id}
+                      onClick={() => onAccountChange(active ? null : acc.id)}
+                      style={{
+                        display: 'inline-flex', alignItems: 'center', gap: '5px',
+                        padding: '3px 11px',
+                        borderRadius: '999px',
+                        fontSize: '12px',
+                        fontWeight: active ? 600 : 400,
+                        letterSpacing: '-0.01em',
+                        border: active ? 'none' : `1px solid ${color}28`,
+                        background: active ? color : `${color}0A`,
+                        color: active ? '#fff' : '#1D1D1F',
+                        cursor: 'pointer',
+                        transition: 'all 0.18s ease',
+                        boxShadow: active ? `0 2px 8px ${color}40` : 'none',
+                      }}
+                    >
+                      <span
+                        style={{
+                          width: 5, height: 5, borderRadius: '50%',
+                          background: active ? 'rgba(255,255,255,0.8)' : color,
+                          flexShrink: 0,
+                        }}
+                      />
+                      {acc.name}
+                    </button>
+                  )
+                })}
+              </div>
+            )
+          })}
+        </div>
+      )}
+
     <div
       style={{
         display: 'flex',
@@ -244,6 +335,7 @@ export function TopicsToolbar({
         <Plus size={14} />
         新建选题
       </button>
+    </div>
     </div>
   )
 }

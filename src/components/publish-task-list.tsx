@@ -30,6 +30,7 @@ const TASK_STATUS_CONFIG: Record<string, { label: string; variant: BadgeVariant 
   SCHEDULED: { label: '已排期', variant: 'glass-blue' },
   PUBLISHED: { label: '已发布', variant: 'glass-green' },
   CANCELLED: { label: '已取消', variant: 'glass-default' },
+  BACKLOG:   { label: '备稿',   variant: 'glass-purple' },
 }
 
 const URGENCY_CONFIG: Record<string, { label: string; variant: BadgeVariant }> = {
@@ -47,6 +48,7 @@ export function PublishTaskList({ tasks }: PublishTaskListProps) {
 
   const pending   = tasks.filter((t) => t.status === 'PENDING').length
   const scheduled = tasks.filter((t) => t.status === 'SCHEDULED').length
+  const backlog   = tasks.filter((t) => t.status === 'BACKLOG').length
   const published = tasks.filter((t) => t.status === 'PUBLISHED').length
 
   function handleDelete(taskId: string) {
@@ -78,10 +80,12 @@ export function PublishTaskList({ tasks }: PublishTaskListProps) {
           发布任务
         </h2>
         <span style={{ fontSize: '13px', color: '#86868B', letterSpacing: '-0.01em' }}>
-          {pending > 0 && `${pending} 待发布`}
-          {pending > 0 && scheduled > 0 && ' · '}
+          {pending   > 0 && `${pending} 待发布`}
+          {pending   > 0 && (scheduled > 0 || backlog > 0 || published > 0) && ' · '}
           {scheduled > 0 && `${scheduled} 已排期`}
-          {(pending > 0 || scheduled > 0) && published > 0 && ' · '}
+          {scheduled > 0 && (backlog > 0 || published > 0) && ' · '}
+          {backlog   > 0 && `${backlog} 备稿`}
+          {backlog   > 0 && published > 0 && ' · '}
           {published > 0 && `${published} 已发布`}
         </span>
       </div>
@@ -141,7 +145,9 @@ export function PublishTaskList({ tasks }: PublishTaskListProps) {
                     whiteSpace: 'nowrap',
                   }}
                 >
-                  {scheduled_ ? scheduled_.text : '立即发布'}
+                  {scheduled_           ? scheduled_.text
+                   : task.status === 'BACKLOG' ? '备稿待发'
+                   : '立即发布'}
                 </span>
                 {task.urgency === 'URGENT' && (
                   <AppleBadge variant={urgencyCfg.variant}>{urgencyCfg.label}</AppleBadge>

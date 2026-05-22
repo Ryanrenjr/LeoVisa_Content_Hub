@@ -40,13 +40,14 @@ export type TaskGroups<T extends GroupableTask> = {
   thisWeekRest: T[]
   later: T[]
   immediate: T[]
+  backlog: T[]
   completed: T[]
 }
 
 export function groupTasksByTime<T extends GroupableTask>(tasks: T[]): TaskGroups<T> {
   const result: TaskGroups<T> = {
     urgent: [], today: [], tomorrow: [], thisWeekRest: [],
-    later: [], immediate: [], completed: [],
+    later: [], immediate: [], backlog: [], completed: [],
   }
 
   const now = new Date()
@@ -66,6 +67,7 @@ export function groupTasksByTime<T extends GroupableTask>(tasks: T[]): TaskGroup
   for (const task of tasks) {
     if (task.status === 'PUBLISHED') { result.completed.push(task); continue }
     if (task.status === 'CANCELLED') continue
+    if (task.status === 'BACKLOG') { result.backlog.push(task); continue }
     if (task.urgency === 'URGENT') { result.urgent.push(task); continue }
     if (!task.scheduledAt) { result.immediate.push(task); continue }
 

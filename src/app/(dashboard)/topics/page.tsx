@@ -6,7 +6,7 @@ export const metadata = {
 }
 
 export default async function TopicsPage() {
-  const [topics, allTags] = await Promise.all([
+  const [topics, allTags, allAccounts] = await Promise.all([
     db.topic.findMany({
       orderBy: { createdAt: 'desc' },
       select: {
@@ -18,17 +18,38 @@ export default async function TopicsPage() {
         createdAt: true,
         owner: { select: { id: true, name: true } },
         tags: { select: { id: true, name: true } },
-        assets: { select: { id: true, type: true, status: true } },
+        assets: {
+          select: {
+            id: true,
+            type: true,
+            status: true,
+            publishTasks: {
+              where: { status: { notIn: ['CANCELLED'] } },
+              select: {
+                accountId: true,
+                account: { select: { id: true, name: true, platform: true } },
+              },
+            },
+          },
+        },
       },
     }),
     db.tag.findMany({ orderBy: { name: 'asc' } }),
+    db.account.findMany({
+      orderBy: { name: 'asc' },
+      select: { id: true, name: true, platform: true },
+    }),
   ])
 
-  // Serialize Date → ISO string for client components
+  const platformOrder: Record<string, number> = { VIDEO_CHANNEL: 0, WECHAT_OFFICIAL: 1, XIAOHONGSHU: 2 }
+  const sortedAccounts = [...allAccounts].sort(
+    (a, b) => (platformOrder[a.platform] ?? 9) - (platformOrder[b.platform] ?? 9),
+  )
+
   const serialized = topics.map((t) => ({
     ...t,
     createdAt: t.createdAt.toISOString(),
   }))
 
-  return <TopicsList topics={serialized} allTags={allTags} />
+  return <TopicsList topics={serialized} allTags={allTags} allAccounts={sortedAccounts} />
 }

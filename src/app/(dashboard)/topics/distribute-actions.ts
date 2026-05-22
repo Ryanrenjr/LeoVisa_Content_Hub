@@ -3,9 +3,11 @@
 import { revalidatePath } from 'next/cache'
 import { db } from '@/lib/db'
 
-async function getWinnieId(): Promise<string> {
-  const winnie = await db.user.findFirst({ where: { name: 'Winnie' }, select: { id: true } })
-  return winnie?.id ?? ''
+async function getPublisherId(): Promise<string> {
+  const user =
+    (await db.user.findFirst({ where: { role: 'PUBLISHER' }, select: { id: true } })) ??
+    (await db.user.findFirst({ select: { id: true } }))
+  return user?.id ?? ''
 }
 
 async function syncTopicStatus(topicId: string) {
@@ -38,11 +40,15 @@ export async function createPublishTask(
   accountId: string,
   scheduledAt: string | null,
   urgency: string,
+  scheduleType?: 'immediate' | 'scheduled' | 'backlog',
 ) {
   const asset = await db.asset.findUnique({ where: { id: assetId }, select: { topicId: true } })
   if (!asset) throw new Error('Asset not found')
 
-  const winnieId = await getWinnieId()
+  const publisherId = await getPublisherId()
+  const status = scheduleType === 'backlog' ? 'BACKLOG'
+               : scheduledAt               ? 'SCHEDULED'
+               : 'PENDING'
 
   const task = await db.publishTask.create({
     data: {
@@ -50,8 +56,8 @@ export async function createPublishTask(
       accountId,
       scheduledAt: scheduledAt ? new Date(scheduledAt) : null,
       urgency,
-      status: scheduledAt ? 'SCHEDULED' : 'PENDING',
-      assignedToId: winnieId,
+      status,
+      assignedToId: publisherId,
     },
   })
 
@@ -62,7 +68,7 @@ export async function createPublishTask(
 
 export async function updatePublishTask(
   taskId: string,
-  data: { accountId?: string; scheduledAt?: string | null; urgency?: string },
+  data: { accountId?: string; scheduledAt?: string | null; urgency?: string; scheduleType?: 'immediate' | 'scheduled' | 'backlog' },
 ) {
   const existing = await db.publishTask.findUnique({
     where: { id: taskId },
@@ -80,14 +86,16 @@ export async function updatePublishTask(
         : null
       : undefined
 
+  const newStatus = data.scheduleType === 'backlog' ? 'BACKLOG'
+                  : newScheduledAt !== undefined ? (newScheduledAt ? 'SCHEDULED' : 'PENDING')
+                  : undefined
+
   await db.publishTask.update({
     where: { id: taskId },
     data: {
       ...(data.accountId !== undefined && { accountId: data.accountId }),
-      ...(newScheduledAt !== undefined && {
-        scheduledAt: newScheduledAt,
-        status: newScheduledAt ? 'SCHEDULED' : 'PENDING',
-      }),
+      ...(newScheduledAt !== undefined && { scheduledAt: newScheduledAt }),
+      ...(newStatus !== undefined && { status: newStatus }),
       ...(data.urgency !== undefined && { urgency: data.urgency }),
     },
   })
@@ -112,7 +120,7 @@ export async function applyAllSuggestions(
   topicId: string,
   suggestions: Array<{ assetId: string; accountId: string }>,
 ) {
-  const winnieId = await getWinnieId()
+  const publisherId = await getPublisherId()
 
   for (const { assetId, accountId } of suggestions) {
     const existing = await db.publishTask.findFirst({ where: { assetId } })
@@ -124,7 +132,7 @@ export async function applyAllSuggestions(
         scheduledAt: null,
         urgency: 'NORMAL',
         status: 'PENDING',
-        assignedToId: winnieId,
+        assignedToId: publisherId,
       },
     })
   }
@@ -136,4 +144,27 @@ export async function applyAllSuggestions(
 export async function revertTopicToInProduction(topicId: string) {
   await db.topic.update({ where: { id: topicId }, data: { status: 'IN_PRODUCTION' } })
   revalidateAll(topicId)
+}
+
+export async function toggleAccountForAsset(assetId: string, accountId: string) {
+  const asset = await db.asset.findUnique({ where: { id: assetId }, select: { topicId: true } })
+  if (!asset) throw new Error('Asset not found')
+
+  const existing = await db.publishTask.findFirst({
+    where: { assetId, accountId, status: { not: 'CANCELLED' } },
+    select: { id: true, status: true },
+  })
+
+  if (existing) {
+    if (existing.status === 'PUBLISHED') return // 已发布不允许取消
+    await db.publishTask.delete({ where: { id: existing.id } })
+  } else {
+    const publisherId = await getPublisherId()
+    await db.publishTask.create({
+      data: { assetId, accountId, urgency: 'NORMAL', status: 'PENDING', assignedToId: publisherId },
+    })
+  }
+
+  await syncTopicStatus(asset.topicId)
+  revalidateAll(asset.topicId)
 }

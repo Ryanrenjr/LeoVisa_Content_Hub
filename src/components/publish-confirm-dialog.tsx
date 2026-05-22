@@ -47,16 +47,10 @@ export function PublishConfirmDialog({ task, open, onClose }: PublishConfirmDial
   }
 
   const handleSubmit = () => {
-    if (!isValidUrl(url)) { setUrlError(true); return }
     setUrlError(false)
-
     startTransition(async () => {
       try {
-        const formData = new FormData()
-        formData.append('taskId', task.id)
-        formData.append('publishedUrl', url)
-        if (screenshot) formData.append('screenshot', screenshot)
-        await markTaskAsPublished(formData)
+        await markTaskAsPublished(task.id)
         toast.success('✓ 已标记发布')
         handleClose()
       } catch (e) {

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { Compass } from 'lucide-react'
 import {
   DropdownMenu,
@@ -58,6 +58,9 @@ export function AppleNavbar({ user }: { user?: NavbarUser }) {
   const role = user?.role ?? 'EDITOR'
   const roleLabel = ROLE_LABEL[role] ?? role
   const roleColors = ROLE_COLOR[role] ?? ROLE_COLOR.EDITOR
+
+  const router = useRouter()
+  const isAdmin = role === 'ADMIN'
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/'
@@ -156,14 +159,15 @@ export function AppleNavbar({ user }: { user?: NavbarUser }) {
 
           <DropdownMenuSeparator />
 
-          {/* Settings (disabled) */}
-          <DropdownMenuItem
-            disabled
-            title="v1.5 推出"
-            className="cursor-not-allowed text-[#86868B]"
-          >
-            个人设置
-          </DropdownMenuItem>
+          {/* Admin: user management */}
+          {isAdmin && (
+            <DropdownMenuItem
+              className="cursor-pointer"
+              onClick={() => router.push('/settings')}
+            >
+              用户管理
+            </DropdownMenuItem>
+          )}
 
           <DropdownMenuSeparator />
 

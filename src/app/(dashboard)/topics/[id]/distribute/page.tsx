@@ -115,7 +115,7 @@ export default async function DistributePage({ params }: { params: Promise<{ id:
     .map((a) => {
       const s = assetSuggestions[a.id]
       if (!s) return null
-      const hasTask = a.publishTasks.some((t) => ['PENDING', 'SCHEDULED', 'PUBLISHED'].includes(t.status))
+      const hasTask = a.publishTasks.some((t) => ['PENDING', 'SCHEDULED', 'PUBLISHED', 'BACKLOG'].includes(t.status))
       return {
         assetId: a.id,
         accountId: s.accountId,
@@ -234,7 +234,7 @@ export default async function DistributePage({ params }: { params: Promise<{ id:
           const candidateAccounts = accounts.filter(
             (a) => a.platform === ASSET_TYPE_TO_PLATFORM[asset.type],
           )
-          const activeTask    = asset.publishTasks.find((t) => ['PENDING', 'SCHEDULED'].includes(t.status))
+          const activeTask    = asset.publishTasks.find((t) => ['PENDING', 'SCHEDULED', 'BACKLOG'].includes(t.status))
           const publishedTask = asset.publishTasks.find((t) => t.status === 'PUBLISHED')
           const keyStr = publishedTask?.id ?? activeTask?.id ?? 'no-task'
           return (

@@ -59,12 +59,27 @@ async function syncTopicStatus(topicId: string) {
     where: { id: topicId },
     select: {
       status: true,
-      assets: { select: { publishTasks: { select: { id: true } } } },
+      assets: {
+        select: {
+          publishTasks: {
+            where: { status: { not: 'CANCELLED' } },
+            select: { id: true, status: true },
+          },
+        },
+      },
     },
   })
   if (!topic) return
-  const allAssetsHaveTasks = topic.assets.every((a) => a.publishTasks.length > 0)
-  if (allAssetsHaveTasks && topic.status === 'IN_PRODUCTION') {
+
+  const allAssets = topic.assets
+  const allAssetsHaveTasks = allAssets.every((a) => a.publishTasks.length > 0)
+  const allTasksPublished =
+    allAssetsHaveTasks &&
+    allAssets.every((a) => a.publishTasks.every((t) => t.status === 'PUBLISHED'))
+
+  if (allTasksPublished && topic.status !== 'PUBLISHED') {
+    await db.topic.update({ where: { id: topicId }, data: { status: 'PUBLISHED' } })
+  } else if (!allTasksPublished && allAssetsHaveTasks && topic.status === 'IN_PRODUCTION') {
     await db.topic.update({ where: { id: topicId }, data: { status: 'READY_TO_PUBLISH' } })
   } else if (!allAssetsHaveTasks && topic.status === 'READY_TO_PUBLISH') {
     await db.topic.update({ where: { id: topicId }, data: { status: 'IN_PRODUCTION' } })
@@ -73,35 +88,19 @@ async function syncTopicStatus(topicId: string) {
 
 // ─── Mark task as published ───────────────────────────────────────────────────
 
-export async function markTaskAsPublished(formData: FormData) {
-  const taskId = formData.get('taskId') as string
-  const publishedUrl = formData.get('publishedUrl') as string
-  const screenshotFile = formData.get('screenshot') as File | null
-
-  if (!taskId || !publishedUrl) throw new Error('缺少必填字段')
-
-  let screenshotPath: string | null = null
-
-  if (screenshotFile && screenshotFile.size > 0) {
-    const dir = path.join(process.cwd(), 'storage', 'publish-screenshots', taskId)
-    await fs.mkdir(dir, { recursive: true })
-    const ext = path.extname(screenshotFile.name) || '.png'
-    const filename = `screenshot_${Date.now()}${ext}`
-    const buffer = Buffer.from(await screenshotFile.arrayBuffer())
-    await fs.writeFile(path.join(dir, filename), buffer)
-    screenshotPath = `publish-screenshots/${taskId}/${filename}`
-  }
+export async function markTaskAsPublished(taskId: string) {
+  const task = await db.publishTask.findUnique({
+    where: { id: taskId },
+    select: { asset: { select: { topicId: true } } },
+  })
+  if (!task) throw new Error('任务不存在')
 
   await db.publishTask.update({
     where: { id: taskId },
-    data: {
-      status: 'PUBLISHED',
-      publishedUrl,
-      publishedScreenshotPath: screenshotPath,
-      publishedAt: new Date(),
-    },
+    data: { status: 'PUBLISHED', publishedAt: new Date() },
   })
 
+  await syncTopicStatus(task.asset.topicId)
   revalidate()
 }
 

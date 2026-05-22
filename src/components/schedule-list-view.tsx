@@ -14,7 +14,8 @@ const GROUPS = [
   { key: 'tomorrow',     emoji: '📅', label: '明天',       collapsible: false, defaultCollapsed: false },
   { key: 'thisWeekRest', emoji: '📆', label: '本周后续',   collapsible: false, defaultCollapsed: false },
   { key: 'later',        emoji: '🔮', label: '后续排期',   collapsible: false, defaultCollapsed: false },
-  { key: 'immediate',    emoji: '⚡', label: '立即发布',   collapsible: false, defaultCollapsed: false },
+  { key: 'immediate',    emoji: '⚡', label: '待发布',     collapsible: false, defaultCollapsed: false },
+  { key: 'backlog',      emoji: '📚', label: '备稿库',     collapsible: true,  defaultCollapsed: false },
   { key: 'completed',    emoji: '✅', label: '已完成',     collapsible: true,  defaultCollapsed: true  },
 ] as const
 

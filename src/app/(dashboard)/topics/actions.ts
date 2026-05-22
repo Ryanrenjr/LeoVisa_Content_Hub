@@ -26,8 +26,20 @@ export async function updateTopic(
     where: { id },
     data,
   })
+
+  if (data.status === 'PUBLISHED') {
+    await db.publishTask.updateMany({
+      where: {
+        asset: { topicId: id },
+        status: { in: ['PENDING', 'SCHEDULED', 'BACKLOG'] },
+      },
+      data: { status: 'PUBLISHED', publishedAt: new Date() },
+    })
+  }
+
   revalidatePath('/topics')
   revalidatePath(`/topics/${id}`)
+  revalidatePath('/schedule')
   return topic
 }
 

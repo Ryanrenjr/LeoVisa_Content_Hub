@@ -19,6 +19,7 @@ import { SectionTitle } from '@/components/apple/section-title'
 import { TopicInfoCard, type TopicDetailData } from '@/components/topic-info-card'
 import { AssetCardText } from '@/components/asset-card-text'
 import { AssetCardVideo } from '@/components/asset-card-video'
+import { AssetAccountPicker, type AssetRow } from '@/components/asset-account-picker'
 import { deleteTopic, createTopic } from '@/app/(dashboard)/topics/actions'
 import type { TopicStatus } from '@/types'
 
@@ -52,11 +53,12 @@ interface TopicDetailProps {
   allTags: { id: string; name: string }[]
   mode: 'view' | 'create'
   ownerId: string
+  assetRows?: AssetRow[]
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export function TopicDetail({ topic, allTags, mode, ownerId }: TopicDetailProps) {
+export function TopicDetail({ topic, allTags, mode, ownerId, assetRows }: TopicDetailProps) {
   const router = useRouter()
   const [createTitle, setCreateTitle] = useState('')
   const [createDesc,  setCreateDesc]  = useState('')
@@ -287,6 +289,20 @@ export function TopicDetail({ topic, allTags, mode, ownerId }: TopicDetailProps)
               ),
             )}
           </div>
+        </motion.div>
+      )}
+
+      {/* ── Account assignment ────────────────────────────────────────────── */}
+      {topic && !isCreate && assetRows && assetRows.length > 0 && (
+        <motion.div
+          custom={4}
+          variants={fadeUp}
+          initial="hidden"
+          animate="visible"
+          style={{ marginTop: '48px' }}
+        >
+          <SectionTitle title="分发账号" subtitle="勾选本期内容要发布的账号" />
+          <AssetAccountPicker rows={assetRows} />
         </motion.div>
       )}
 

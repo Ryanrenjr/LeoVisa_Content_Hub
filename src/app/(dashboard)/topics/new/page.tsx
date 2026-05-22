@@ -1,4 +1,5 @@
-import { db } from '@/lib/db'
+import { auth } from '@/auth'
+import { redirect } from 'next/navigation'
 import { getAllTags } from '@/app/(dashboard)/topics/actions'
 import { TopicDetail } from '@/components/topic-detail'
 
@@ -7,17 +8,17 @@ export const metadata = {
 }
 
 export default async function NewTopicPage() {
-  const [ryan, allTags] = await Promise.all([
-    db.user.findUniqueOrThrow({ where: { email: 'ryan@leovisa.com' }, select: { id: true } }),
-    getAllTags(),
-  ])
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const allTags = await getAllTags()
 
   return (
     <TopicDetail
       topic={null}
       allTags={allTags}
       mode="create"
-      ownerId={ryan.id}
+      ownerId={session.user.id}
     />
   )
 }

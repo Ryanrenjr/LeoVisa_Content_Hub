@@ -18,10 +18,10 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.55, ease } },
 }
 
-const cardVariant = {
-  hidden: { opacity: 0, y: 10, scale: 0.98 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { duration: 0.4, ease } },
-  exit: { opacity: 0, scale: 0.96, transition: { duration: 0.22, ease } },
+const rowVariant = {
+  hidden: { opacity: 0, y: 6 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease } },
+  exit: { opacity: 0, transition: { duration: 0.18, ease } },
 }
 
 // ─── Gradient text ─────────────────────────────────────────────────────────────
@@ -96,14 +96,16 @@ function EmptyState({ onCreateClick }: { onCreateClick: () => void }) {
 interface TopicsListProps {
   topics: TopicCardData[]
   allTags: { id: string; name: string }[]
+  allAccounts: { id: string; name: string; platform: string }[]
 }
 
 // ─── Main component ────────────────────────────────────────────────────────────
 
-export function TopicsList({ topics, allTags }: TopicsListProps) {
+export function TopicsList({ topics, allTags, allAccounts }: TopicsListProps) {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState<TopicStatus | 'ALL'>('ALL')
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [selectedAccount, setSelectedAccount] = useState<string | null>(null)
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
@@ -112,6 +114,12 @@ export function TopicsList({ topics, allTags }: TopicsListProps) {
       if (selectedTags.length > 0) {
         const topicTagIds = t.tags.map((tag) => tag.id)
         if (!selectedTags.some((id) => topicTagIds.includes(id))) return false
+      }
+      if (selectedAccount !== null) {
+        const hasAccount = t.assets.some((a) =>
+          a.publishTasks.some((pt) => pt.accountId === selectedAccount),
+        )
+        if (!hasAccount) return false
       }
       if (search.trim()) {
         const q = search.trim().toLowerCase()
@@ -123,7 +131,7 @@ export function TopicsList({ topics, allTags }: TopicsListProps) {
       }
       return true
     })
-  }, [topics, statusFilter, selectedTags, search])
+  }, [topics, statusFilter, selectedTags, selectedAccount, search])
 
   function handleCreateClick() {
     router.push('/topics/new')
@@ -164,6 +172,9 @@ export function TopicsList({ topics, allTags }: TopicsListProps) {
           selectedTags={selectedTags}
           onTagsChange={setSelectedTags}
           allTags={allTags}
+          allAccounts={allAccounts}
+          selectedAccount={selectedAccount}
+          onAccountChange={setSelectedAccount}
           search={search}
           onSearchChange={setSearch}
           onCreateClick={handleCreateClick}
@@ -172,43 +183,36 @@ export function TopicsList({ topics, allTags }: TopicsListProps) {
 
       {/* ── Section heading ──────────────────────────────────────────────── */}
       <SectionTitle
-        title={statusFilter === 'ALL' ? '全部选题' : ALL_STATUS_LABELS[statusFilter]}
+        title={
+          selectedAccount !== null
+            ? (allAccounts.find((a) => a.id === selectedAccount)?.name ?? '筛选账号')
+            : statusFilter === 'ALL' ? '全部选题' : ALL_STATUS_LABELS[statusFilter]
+        }
         subtitle={`共 ${filtered.length} 条`}
       />
 
-      {/* ── Grid ─────────────────────────────────────────────────────────── */}
+      {/* ── List ─────────────────────────────────────────────────────────── */}
       {filtered.length === 0 ? (
         <EmptyState onCreateClick={handleCreateClick} />
       ) : (
-        <motion.div
-          layout
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '20px',
-          }}
-        >
+        <motion.div layout style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <AnimatePresence mode="popLayout">
             {filtered.map((topic, i) => (
               <motion.div
                 key={topic.id}
                 layout
-                variants={cardVariant}
+                variants={rowVariant}
                 initial="hidden"
                 animate="visible"
                 exit="exit"
-                transition={{ delay: i * 0.06 }}
-                style={{ display: 'flex' }}
+                transition={{ delay: i * 0.04 }}
+                style={{ cursor: 'pointer' }}
+                onClick={() => router.push(`/topics/${topic.id}`)}
               >
-                <div
-                  style={{ width: '100%', cursor: 'pointer' }}
-                  onClick={() => router.push(`/topics/${topic.id}`)}
-                >
-                  <TopicCard
-                    topic={topic}
-                    onDistributeClick={() => router.push(`/topics/${topic.id}/distribute`)}
-                  />
-                </div>
+                <TopicCard
+                  topic={topic}
+                  onDistributeClick={() => router.push(`/topics/${topic.id}/distribute`)}
+                />
               </motion.div>
             ))}
           </AnimatePresence>

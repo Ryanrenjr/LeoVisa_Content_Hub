@@ -5,7 +5,7 @@ import { CheckCircle2, Loader2, FileText, Video } from 'lucide-react'
 import { AppleCard } from '@/components/apple/apple-card'
 import { AppleBadge, type BadgeVariant } from '@/components/apple/apple-badge'
 import { DistributionAccountSelector, type AccountOption } from '@/components/distribution-account-selector'
-import { DistributionSchedule } from '@/components/distribution-schedule'
+import { DistributionSchedule, type ScheduleType } from '@/components/distribution-schedule'
 import { createPublishTask, updatePublishTask } from '@/app/(dashboard)/topics/distribute-actions'
 import { toast } from 'sonner'
 
@@ -164,7 +164,7 @@ export function DistributionCard({ asset, candidateAccounts, suggestion }: Distr
   const isXhsLocked = asset.type === 'XHS_POST'
   const isDisabled  = asset.status === 'NOT_STARTED'
 
-  const activeTask    = asset.publishTasks.find((t) => ['PENDING', 'SCHEDULED'].includes(t.status))
+  const activeTask    = asset.publishTasks.find((t) => ['PENDING', 'SCHEDULED', 'BACKLOG'].includes(t.status))
   const publishedTask = asset.publishTasks.find((t) => t.status === 'PUBLISHED')
 
   // Form state (initialized from existing task or suggestion)
@@ -174,8 +174,9 @@ export function DistributionCard({ asset, candidateAccounts, suggestion }: Distr
     ''
 
   const [selectedAccountId, setSelectedAccountId] = useState(initialAccountId)
-  const [scheduleType, setScheduleType] = useState<'immediate' | 'scheduled'>(
-    activeTask?.scheduledAt ? 'scheduled' : 'immediate',
+  const [scheduleType, setScheduleType] = useState<ScheduleType>(
+    activeTask?.status === 'BACKLOG' ? 'backlog' :
+    activeTask?.scheduledAt          ? 'scheduled' : 'immediate',
   )
   const [scheduledAt, setScheduledAt] = useState(
     activeTask?.scheduledAt ? toDatetimeLocal(activeTask.scheduledAt) : '',
@@ -196,6 +197,7 @@ export function DistributionCard({ asset, candidateAccounts, suggestion }: Distr
     }
 
     const scheduledAtValue = scheduleType === 'scheduled' ? scheduledAt : null
+    const urgencyValue     = scheduleType === 'backlog'   ? 'NORMAL'    : urgency
 
     startSubmit(async () => {
       try {
@@ -203,11 +205,12 @@ export function DistributionCard({ asset, candidateAccounts, suggestion }: Distr
           await updatePublishTask(activeTask.id, {
             accountId: selectedAccountId,
             scheduledAt: scheduledAtValue,
-            urgency,
+            urgency: urgencyValue,
+            scheduleType,
           })
           toast.success('发布任务已更新')
         } else {
-          await createPublishTask(asset.id, selectedAccountId, scheduledAtValue, urgency)
+          await createPublishTask(asset.id, selectedAccountId, scheduledAtValue, urgencyValue, scheduleType)
           toast.success('发布任务已生成')
         }
       } catch (e) {
