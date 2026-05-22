@@ -22,10 +22,10 @@ export interface StorageProvider {
 // ─── LocalStorageProvider ──────────────────────────────────────────────────────
 
 export class LocalStorageProvider implements StorageProvider {
-  private root: string
+  readonly root: string
 
   constructor() {
-    this.root = path.join(process.cwd(), 'storage')
+    this.root = process.env.STORAGE_PATH ?? path.join(process.cwd(), 'storage')
   }
 
   getAbsPath(relPath: string): string {

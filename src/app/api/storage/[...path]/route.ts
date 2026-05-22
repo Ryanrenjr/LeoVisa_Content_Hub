@@ -25,8 +25,7 @@ export async function GET(
   const absPath = storage.getAbsPath(relPath)
 
   // Prevent path traversal
-  const root = path.join(process.cwd(), 'storage')
-  if (!absPath.startsWith(root)) {
+  if (!absPath.startsWith(storage.root)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 

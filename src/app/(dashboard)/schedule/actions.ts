@@ -1,9 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import fs from 'fs/promises'
-import path from 'path'
 import { db } from '@/lib/db'
+import { storage } from '@/lib/storage'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -215,7 +214,7 @@ export async function getAssetTextContent(assetId: string): Promise<string | nul
   if (!filePath) return null
 
   try {
-    return await fs.readFile(path.join(process.cwd(), 'storage', filePath), 'utf-8')
+    return await storage.readText(filePath)
   } catch {
     return null
   }
