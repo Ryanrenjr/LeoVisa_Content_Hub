@@ -1,12 +1,12 @@
 'use client'
 
 import Link from 'next/link'
+import { signOut } from 'next-auth/react'
 import { usePathname, useRouter } from 'next/navigation'
 import { useEffect, useRef, useState, useTransition } from 'react'
 import { Compass } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { NavbarUrgentBadge } from '@/components/navbar-urgent-badge'
-import { handleSignOut } from '@/lib/actions/auth'
 
 const navLinks = [
   { label: '仪表盘', href: '/' },
@@ -238,7 +238,7 @@ export function AppleNavbar({ user }: { user?: NavbarUser }) {
               disabled={isSigningOut}
               onClick={() => {
                 startSignOut(async () => {
-                  await handleSignOut()
+                  await signOut({ callbackUrl: '/login' })
                 })
               }}
               style={{

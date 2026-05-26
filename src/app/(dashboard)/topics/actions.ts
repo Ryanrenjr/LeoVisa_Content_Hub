@@ -1,6 +1,8 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
+import { redirect } from 'next/navigation'
+import { auth } from '@/auth'
 import { db } from '@/lib/db'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -61,6 +63,20 @@ export async function createTopic(data: {
   tagIds?: string[]
   ownerId: string
 }) {
+  const session = await auth()
+  if (!session?.user?.id) redirect('/login')
+
+  const currentUser = await db.user.findFirst({
+    where: {
+      OR: [
+        { id: session.user.id },
+        ...(session.user.email ? [{ email: session.user.email }] : []),
+      ],
+    },
+    select: { id: true },
+  })
+  if (!currentUser) redirect('/login')
+
   const code = await nextTopicCode()
   const topic = await db.topic.create({
     data: {
@@ -68,7 +84,7 @@ export async function createTopic(data: {
       title: data.title,
       description: data.description ?? '',
       status: data.status ?? 'DRAFT',
-      ownerId: data.ownerId,
+      ownerId: currentUser.id,
       tags: data.tagIds?.length
         ? { connect: data.tagIds.map((id) => ({ id })) }
         : undefined,
