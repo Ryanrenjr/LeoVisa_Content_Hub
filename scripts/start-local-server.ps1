@@ -1,6 +1,7 @@
 param(
   [switch]$SkipBuild,
-  [int]$Port = 3000
+  [int]$Port = 3000,
+  [string]$PublicUrl
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +20,11 @@ $env:AUTH_TRUST_HOST = "true"
 $env:DATABASE_URL = "file:./dev.db"
 $env:PORT = "$Port"
 
+if ($PublicUrl) {
+  $env:AUTH_URL = $PublicUrl
+  $env:NEXTAUTH_URL = $PublicUrl
+}
+
 New-Item -ItemType Directory -Force -Path (Join-Path $Root "storage\topics") | Out-Null
 New-Item -ItemType Directory -Force -Path (Join-Path $Root "backups") | Out-Null
 
@@ -33,6 +39,10 @@ if (-not $SkipBuild) {
 Write-Host ""
 Write-Host "LeoVisa Content Hub is starting locally:"
 Write-Host "  http://localhost:$Port"
+if ($PublicUrl) {
+  Write-Host "Public URL:"
+  Write-Host "  $PublicUrl"
+}
 Write-Host ""
 Write-Host "Keep this window open while colleagues are using the system."
 Write-Host ""

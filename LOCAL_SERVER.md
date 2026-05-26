@@ -24,11 +24,14 @@ npm run local:tunnel
 
 Share the `https://*.trycloudflare.com` URL printed by cloudflared.
 
-One-command helper:
+Recommended one-command helper:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File scripts/start-local-with-tunnel.ps1
 ```
+
+This starts Cloudflare Tunnel first, reads the generated public URL, and then starts
+Next.js with that URL configured for authentication redirects.
 
 Backup manually:
 

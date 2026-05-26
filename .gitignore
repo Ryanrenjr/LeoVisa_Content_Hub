@@ -53,5 +53,8 @@ next-env.d.ts
 # local backups
 /backups/
 
+# local runtime logs
+/logs/
+
 # local auth secrets
 auth.secret
