@@ -13,6 +13,7 @@ async function main() {
     where: { email: 'rjxxx@leovisas.com' },
     update: {},
     create: {
+      id: 'seed-user-ryan',
       email: 'rjxxx@leovisas.com',
       password: hashedPassword,
       name: 'Ryan',
@@ -24,6 +25,7 @@ async function main() {
     where: { email: 'User@leovisas.com' },
     update: {},
     create: {
+      id: 'seed-user-publisher',
       email: 'User@leovisas.com',
       password: hashedPassword,
       name: 'User',
@@ -35,6 +37,7 @@ async function main() {
     where: { email: 'Admin@leovisas.com' },
     update: {},
     create: {
+      id: 'seed-user-admin',
       email: 'Admin@leovisas.com',
       password: hashedPassword,
       name: 'Admin',
