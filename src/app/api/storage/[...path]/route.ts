@@ -4,6 +4,7 @@ import path from 'path'
 import { storage } from '@/lib/storage'
 
 // TODO: Add auth check when NextAuth is wired up
+export const runtime = 'nodejs'
 
 const MIME: Record<string, string> = {
   '.txt':  'text/plain; charset=utf-8',
