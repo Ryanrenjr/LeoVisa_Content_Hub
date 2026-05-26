@@ -50,5 +50,8 @@ next-env.d.ts
 /storage/*
 !/storage/.gitkeep
 
+# local backups
+/backups/
+
 # local auth secrets
 auth.secret
