@@ -7,7 +7,16 @@ $ErrorActionPreference = "Stop"
 $Root = Resolve-Path (Join-Path $PSScriptRoot "..")
 Set-Location $Root
 
+$ExistingPort = Get-NetTCPConnection -LocalPort $Port -ErrorAction SilentlyContinue |
+  Where-Object { $_.State -eq "Listen" } |
+  Select-Object -First 1
+
+if ($ExistingPort) {
+  throw "Port $Port is already in use by process $($ExistingPort.OwningProcess). Stop that process before starting another LeoVisa server."
+}
+
 $env:AUTH_TRUST_HOST = "true"
+$env:DATABASE_URL = "file:./dev.db"
 $env:PORT = "$Port"
 
 New-Item -ItemType Directory -Force -Path (Join-Path $Root "storage\topics") | Out-Null
