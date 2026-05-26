@@ -13,6 +13,7 @@ export interface StorageProvider {
   upload(buffer: Buffer, relPath: string): Promise<UploadResult>
   delete(relPath: string): Promise<void>
   exists(relPath: string): Promise<boolean>
+  ensureTopicFolder(code: string, title: string): Promise<string>
   renameTopicFolder(oldFolder: string, newFolder: string): Promise<void>
   getAbsPath(relPath: string): string
   readText(relPath: string): Promise<string>
@@ -63,6 +64,12 @@ export class LocalStorageProvider implements StorageProvider {
     } catch {
       return false
     }
+  }
+
+  async ensureTopicFolder(code: string, title: string): Promise<string> {
+    const relPath = path.join('topics', topicFolder(code, title))
+    await fs.mkdir(this.getAbsPath(relPath), { recursive: true })
+    return relPath
   }
 
   async renameTopicFolder(oldFolder: string, newFolder: string): Promise<void> {

@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { auth } from '@/auth'
 import { db } from '@/lib/db'
+import { storage } from '@/lib/storage'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -98,6 +99,7 @@ export async function createTopic(data: {
       { topicId: topic.id, type: 'VIDEO',           status: 'NOT_STARTED', source: 'MANUAL_UPLOAD' },
     ],
   })
+  await storage.ensureTopicFolder(topic.code, topic.title)
   revalidatePath('/topics')
   return topic
 }
