@@ -74,8 +74,13 @@ export function UploadDropzone({
           toast.success(`上传成功：${file.name}`)
           onSuccess({ path: res.path, originalName: file.name, size: file.size })
         } else {
-          let msg = '上传失败'
-          try { msg = JSON.parse(xhr.responseText).error ?? msg } catch { /* empty */ }
+          let msg = `上传失败 (${xhr.status})`
+          try {
+            const body = JSON.parse(xhr.responseText)
+            msg = body.error ? `${body.error} (${xhr.status})` : msg
+          } catch {
+            if (xhr.responseText) msg = `${xhr.responseText.slice(0, 160)} (${xhr.status})`
+          }
           setError(msg)
           toast.error(msg)
         }
