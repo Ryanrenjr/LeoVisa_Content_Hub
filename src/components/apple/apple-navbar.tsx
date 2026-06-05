@@ -13,6 +13,7 @@ const navLinks = [
   { label: '账号矩阵', href: '/accounts' },
   { label: '选题工作台', href: '/topics' },
   { label: '排期管理', href: '/schedule', showUrgentBadge: true },
+  { label: '操作流程', href: '/workflow' },
 ]
 
 const ROLE_LABEL: Record<string, string> = {
