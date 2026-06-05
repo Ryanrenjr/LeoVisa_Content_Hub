@@ -3,6 +3,7 @@
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { SectionTitle } from '@/components/apple/section-title'
 import { AccountCard, type AccountData } from '@/components/account-card'
+import { SkillPromptSection } from '@/components/skill-prompt-section'
 
 // ─── Animation variants ───────────────────────────────────────────────────────
 
@@ -166,6 +167,9 @@ export function AccountsView({
             ))}
           </motion.div>
         </motion.section>
+
+        {/* ── Section: Skill Prompts ───────────────────────────────────────── */}
+        <SkillPromptSection />
 
         {/* ── Section 2: 小红书 ────────────────────────────────────────────── */}
         <motion.section variants={fadeUp} style={{ marginBottom: '72px' }}>

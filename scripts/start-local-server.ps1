@@ -1,6 +1,6 @@
 param(
   [switch]$SkipBuild,
-  [int]$Port = 3000,
+  [int]$Port = 3001,
   [string]$PublicUrl
 )
 
